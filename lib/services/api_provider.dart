@@ -10,16 +10,6 @@ import 'package:dio_cache_interceptor_hive_store/dio_cache_interceptor_hive_stor
 // Services
 import '/services/secure_storage.dart';
 
-enum APIEnviroment { PROD, DESENV, LOCAL }
-
-String baseUrlOnEnviroment(APIEnviroment enviroment) {
-  return switch (enviroment) {
-    APIEnviroment.PROD => "https://api-v2.wikidados.com.br",
-    APIEnviroment.DESENV => "https://integracaohomologacao.wikidados.com.br",
-    APIEnviroment.LOCAL => "http://10.0.0.173:3010",
-  };
-}
-
 // Dio's Third-Party Plugins (https://github.com/cfug/dio/issues/347)
 class ApiProvider {
   final Dio dio = Dio();
@@ -30,7 +20,7 @@ class ApiProvider {
   ApiProvider({required this.ref, required this.secureStorage}) {
     // Basic Config
     BaseOptions defaultOptions = BaseOptions(
-      baseUrl: baseUrlOnEnviroment(APIEnviroment.PROD),
+      baseUrl: "https://fake-api.tractian.com",
       connectTimeout: const Duration(seconds: 50),
       receiveTimeout: const Duration(minutes: 2),
       sendTimeout: const Duration(minutes: 2),
@@ -42,14 +32,14 @@ class ApiProvider {
     dio.options = defaultOptions;
     // Better Conection established (DNS Lookup and SSL Handshake)
     // (https://pub.dev/packages/native_dio_adapter)
-    dio.httpClientAdapter = NativeAdapter();
+    // dio.httpClientAdapter = NativeAdapter();
 
     // *** Interceptors ***
 
     // Cache (https://pub.dev/packages/dio_cache_interceptor)
-    dioCacheConfig().then(
-      (options) => dio.interceptors.add(DioCacheInterceptor(options: options)),
-    );
+    // dioCacheConfig().then(
+    //   (options) => dio.interceptors.add(DioCacheInterceptor(options: options)),
+    // );
   }
 
   Future<CacheOptions> dioCacheConfig() async {

@@ -2,8 +2,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+import 'package:tracktian_test/controllers/company_controller.dart';
 // Models
-import 'package:tracktian_test/models/assets.dart';
+import 'package:tracktian_test/models/asset.dart';
+import 'package:tracktian_test/models/company.dart';
+import 'package:tracktian_test/models/location.dart';
 // Services
 import '/services/api_provider.dart';
 import '/services/secure_storage.dart';
@@ -15,42 +18,63 @@ import '/services/secure_storage.dart';
 
 @immutable
 class AssetsState {
-  const AssetsState({
-    required this.assetsList,
-  });
+  const AssetsState({required this.assetList, required this.locationList});
 
-  final List<Assets> assetsList;
+  final List<Location> locationList;
+  final List<Asset> assetList;
 
-  AssetsState copyWith({List<Assets>? assetsList}) {
-    return AssetsState(assetsList: assetsList ?? this.assetsList);
+  AssetsState copyWith({List<Asset>? assetList, List<Location>? locationList}) {
+    return AssetsState(
+      assetList: assetList ?? this.assetList,
+      locationList: locationList ?? this.locationList,
+    );
   }
 }
 
-class PermissionController extends StateNotifier<AssetsState> {
-  PermissionController({required this.ref, required this.apiProvider, required this.storage})
-      : super(
-          const AssetsState(assetsList: []),
-        );
+class CompanyController extends StateNotifier<AssetsState> {
+  CompanyController({required this.ref, required this.apiProvider, required this.storage})
+      : super(const AssetsState(assetList: [], locationList: []));
 
   Ref ref;
   // Api
   ApiProvider apiProvider;
   SecureStorage storage;
 
-  Future<({bool success, String message})> getCompanyPermissions() async {
+  Future<({bool success, String message})> requestLocations() async {
     try {
-      // Response res = await apiProvider.dio.get("/permissoes");
+      Company company = ref.read(companyProvider).companySelected!;
+      Response res = await apiProvider.dio.get("/companies/${company.id}/locations");
 
-      // if (res.data["status"] != 200) {
-      //   return (success: false, message: res.data["error"] as String);
-      // }
+      if (res.statusCode != 200) {
+        return (success: false, message: "");
+      }
 
-      // List<MyPermission> permissionList = res.data["payload"]
-      //     .map((permission) => MyPermission.fromJson(permission))
-      //     .whereType<MyPermission>()
-      //     .toList();
+      List<Location> locationList = res.data
+          .map((permission) => Location.fromJson(permission))
+          .whereType<Location>()
+          .toList();
 
-      // state = state.copyWith(permissionList: permissionList);
+      state = state.copyWith(locationList: locationList);
+
+      return (success: true, message: "");
+    } catch (error) {
+      return (success: false, message: error.toString());
+    }
+  }
+
+  Future<({bool success, String message})> requestAssets() async {
+    try {
+      Company company = ref.read(companyProvider).companySelected!;
+      Response res = await apiProvider.dio.get("/companies/${company.id}/assets");
+
+      if (res.statusCode != 200) {
+        return (success: false, message: "");
+      }
+
+      List<Asset> assetList =
+          res.data.map((permission) => Asset.fromJson(permission)).whereType<Asset>().toList();
+
+      state = state.copyWith(assetList: assetList);
 
       return (success: true, message: "");
     } catch (error) {
@@ -59,8 +83,8 @@ class PermissionController extends StateNotifier<AssetsState> {
   }
 }
 
-final assetsProvider = StateNotifierProvider<PermissionController, AssetsState>((ref) {
-  return PermissionController(
+final assetsProvider = StateNotifierProvider<CompanyController, AssetsState>((ref) {
+  return CompanyController(
     ref: ref,
     apiProvider: ref.watch(apiProvider),
     storage: ref.watch(secureStorageProvider),
