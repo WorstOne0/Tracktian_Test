@@ -2,15 +2,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animated_tree_view/animated_tree_view.dart';
-import 'package:tracktian_test/models/asset.dart';
-import 'package:tracktian_test/models/location.dart';
-import 'package:tracktian_test/widgets/response_widget.dart';
 // Controllers
 import '/controllers/assets_controller.dart';
 // Pages
-import 'all_permission.dart';
+import 'tree_view_isolate.dart';
 // Widgets
 import '/widgets/build_text_field.dart';
+import '/widgets/response_widget.dart';
 // Utils
 import '/utils/string_extensions.dart';
 
@@ -40,25 +38,14 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
   // Tree Controllers
   final key = GlobalKey<SliverAnimatedListState>();
   final _autoController = AutoScrollController();
-  final assetsTree = TreeNode<TreeView>.root();
+  TreeNode<TreeView> assetsTree = TreeNode<TreeView>.root();
   //
   final _searchController = TextEditingController();
-  bool isGlobal = false;
-
-  List<Location> locationList = [];
-  List<Asset> assetList = [];
+  bool filterEnergy = false, filterCritical = false;
 
   @override
   void initState() {
     super.initState();
-
-    // Too slow on really big trees (like on the company Apex)
-    // _searchController.addListener(() {
-    //   assetsTree.clear();
-    //   buildPermisisonTree();
-
-    //   setState(() {});
-    // });
 
     asyncInit();
   }
@@ -69,14 +56,16 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
       ref.read(assetsProvider.notifier).requestAssets()
     ]);
 
-    print("End of API");
-
     bool success = responses.every((element) => element.success);
     if (!success) response = responses.firstWhere((element) => !element.success);
 
-    locationList = ref.read(assetsProvider).locationList;
-    assetList = ref.read(assetsProvider).assetList;
-    await buildPermisisonTree();
+    assetsTree = await createTreeViewIsolate(
+      ref.read(assetsProvider).locationList,
+      ref.read(assetsProvider).assetList,
+      _searchController.text,
+      filterEnergy,
+      filterCritical,
+    );
 
     setState(() {
       isLoading = false;
@@ -84,133 +73,24 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
     });
   }
 
-  Future<void> buildPermisisonTree() async {
-    setState(() => isSearching = true);
+  void searchTree(bool newEnergy, bool newCritical) async {
+    if (isSearching) return;
 
-    await Future.delayed(Duration(milliseconds: 50));
+    setState(() {
+      isSearching = true;
+      filterEnergy = newEnergy;
+      filterCritical = newCritical;
+    });
 
-    // Build the Root of the Tree
-    final locationRoot = [...locationList].where((location) => location.parentId == null).toList();
-    final assetUnlinked = [...assetList]
-        .where((asset) => asset.parentId == null && asset.locationId == null)
-        .toList();
-
-    List<TreeNode<TreeView>> nodes = [];
-    // Locations in the Root
-    for (var location in locationRoot) {
-      var root = TreeNode<TreeView>(
-        key: location.id,
-        data: TreeView(location.name, TreeViewType.location, null, null),
-      );
-
-      var children = buildTreeChildren(location.id);
-      root.addAll(children.node);
-
-      print(location.name);
-      if (location.name.contains(_searchController.text) || children.keepOnTree) {
-        nodes.add(root);
-        // assetsTree.add(root);
-      }
-    }
-
-    // Unlinked Assets
-    for (var asset in assetUnlinked) {
-      var root = TreeNode<TreeView>(
-        key: asset.id,
-        data: TreeView(
-          asset.name,
-          asset.sensorType != null ? TreeViewType.component : TreeViewType.asset,
-          asset.sensorType,
-          asset.status == "alert",
-        ),
-      );
-
-      if (asset.name.contains(_searchController.text)) {
-        nodes.add(root);
-        // assetsTree.add(root);
-      }
-    }
+    assetsTree = await createTreeViewIsolate(
+      ref.read(assetsProvider).locationList,
+      ref.read(assetsProvider).assetList,
+      _searchController.text,
+      filterEnergy,
+      filterCritical,
+    );
 
     setState(() => isSearching = false);
-    await Future.delayed(Duration(milliseconds: 50));
-
-    print("ADD ALL");
-    assetsTree.addAll(nodes);
-  }
-
-  ({List<TreeNode<TreeView>> node, bool keepOnTree}) buildTreeChildren(String parentId) {
-    final subLocation =
-        [...locationList].where((location) => location.parentId == parentId).toList();
-    final locationAssets = [...assetList].where((asset) => asset.locationId == parentId).toList();
-    final assetsOfAssets = [...assetList].where((asset) => asset.parentId == parentId).toList();
-
-    List<TreeNode<TreeView>> treeList = [];
-    List<bool> subLocationBool = [], locationAssetsBool = [], assetsOfAssetsBool = [];
-
-    // Location inside a Location
-    for (var location in subLocation) {
-      final root = TreeNode<TreeView>(
-        key: location.id,
-        data: TreeView(location.name, TreeViewType.location, null, null),
-      );
-
-      var children = buildTreeChildren(location.id);
-      root.addAll(children.node);
-
-      bool keepOnTree = children.keepOnTree || location.name.contains(_searchController.text);
-      if (keepOnTree) treeList.add(root);
-      subLocationBool.add(keepOnTree);
-    }
-
-    for (var asset in locationAssets) {
-      final root = TreeNode<TreeView>(
-        key: asset.id,
-        data: TreeView(
-          asset.name,
-          asset.sensorType != null ? TreeViewType.component : TreeViewType.asset,
-          asset.sensorType,
-          asset.status == "alert",
-        ),
-      );
-
-      var children = buildTreeChildren(asset.id);
-      root.addAll(children.node);
-
-      bool keepOnTree = children.keepOnTree || asset.name.contains(_searchController.text);
-      if (keepOnTree) treeList.add(root);
-      locationAssetsBool.add(keepOnTree);
-    }
-
-    for (var asset in assetsOfAssets) {
-      final root = TreeNode<TreeView>(
-        key: asset.id,
-        data: TreeView(
-          asset.name,
-          asset.sensorType != null ? TreeViewType.component : TreeViewType.asset,
-          asset.sensorType,
-          asset.status == "alert",
-        ),
-      );
-
-      var children = buildTreeChildren(asset.id);
-      root.addAll(children.node);
-
-      bool keepOnTree = children.keepOnTree || asset.name.contains(_searchController.text);
-      if (keepOnTree) treeList.add(root);
-      assetsOfAssetsBool.add(keepOnTree);
-    }
-
-    bool keepOnTree = subLocationBool.any((element) => element) ||
-        locationAssetsBool.any((element) => element) ||
-        assetsOfAssetsBool.any((element) => element);
-
-    return (node: treeList, keepOnTree: keepOnTree);
-  }
-
-  void searchTree() async {
-    assetsTree.clear();
-    assetsTree.resetIndentationCache();
-    await buildPermisisonTree();
   }
 
   @override
@@ -232,7 +112,7 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: const [Icon(Icons.lock), SizedBox(width: 20)],
+        actions: const [Icon(Icons.inventory), SizedBox(width: 20)],
       ),
       body: isLoading
           ? const Center(child: Text("Loading"))
@@ -253,25 +133,122 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
                             child: buildTextField(
                               context,
                               controller: _searchController,
-                              title: "Search",
-                              icon: Icons.description,
+                              title: "Buscar Ativo ou Local",
+                              icon: Icons.search,
                             ),
                           ),
                           MaterialButton(
-                            onPressed: searchTree,
+                            height: 56,
+                            onPressed: () => searchTree(filterEnergy, filterCritical),
                             color: Theme.of(context).colorScheme.primary,
-                            child: const Icon(Icons.search),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            child: const Text(
+                              "Buscar",
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           )
                         ],
                       ),
-                      const SizedBox(height: 20),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => searchTree(!filterEnergy, filterCritical),
+                              child: Card(
+                                elevation: 1,
+                                color: filterEnergy
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).brightness == Brightness.light
+                                        ? Colors.white
+                                        : null,
+                                child: SizedBox(
+                                  height: 40,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.energy_savings_leaf,
+                                        size: 20,
+                                        color: filterEnergy
+                                            ? Colors.white
+                                            : Theme.of(context).brightness == Brightness.light
+                                                ? Colors.black
+                                                : Colors.white,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        "Sensor de Energia",
+                                        style: TextStyle(
+                                          color: filterEnergy
+                                              ? Colors.white
+                                              : Theme.of(context).brightness == Brightness.light
+                                                  ? Colors.black
+                                                  : Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => searchTree(filterEnergy, !filterCritical),
+                              child: Card(
+                                elevation: 1,
+                                color: filterCritical
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Theme.of(context).brightness == Brightness.light
+                                        ? Colors.white
+                                        : null,
+                                child: SizedBox(
+                                  height: 40,
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error_outline,
+                                        size: 20,
+                                        color: filterCritical
+                                            ? Colors.white
+                                            : Theme.of(context).brightness == Brightness.light
+                                                ? Colors.black
+                                                : Colors.white,
+                                      ),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        "Critico",
+                                        style: TextStyle(
+                                          color: filterCritical
+                                              ? Colors.white
+                                              : Theme.of(context).brightness == Brightness.light
+                                                  ? Colors.black
+                                                  : Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 10),
                       const Padding(
                         padding: EdgeInsets.symmetric(horizontal: 15),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Permissões",
+                              "Assets",
                               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                             ),
                             Text(
@@ -281,9 +258,8 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 10),
                       isSearching
-                          ? Center(
+                          ? const Center(
                               child: Text("Buscando"),
                             )
                           : Expanded(
@@ -307,20 +283,30 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
                                     indentation: const Indentation(style: IndentStyle.squareJoint),
                                     builder: (context, node) {
                                       return Container(
+                                        height: 30,
                                         padding: const EdgeInsets.only(left: 15),
                                         child: Row(
                                           children: [
-                                            if (!node.isLeaf) const SizedBox(width: 15),
+                                            if (node.level == 1 || !node.isLeaf)
+                                              const SizedBox(width: 15),
                                             Expanded(
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
-                                                  Icon(switch (node.data?.type) {
-                                                    TreeViewType.location => Icons.location_on,
-                                                    TreeViewType.asset => Icons.square,
-                                                    TreeViewType.component => Icons.circle,
-                                                    _ => Icons.error
-                                                  }),
+                                                  Image.asset(
+                                                    switch (node.data?.type) {
+                                                      TreeViewType.location =>
+                                                        "assets/drawable/location.png",
+                                                      TreeViewType.asset =>
+                                                        "assets/drawable/asset.png",
+                                                      TreeViewType.component =>
+                                                        "assets/drawable/component.png",
+                                                      _ => "assets/drawable/location.png"
+                                                    },
+                                                    width: 20,
+                                                    height: 20,
+                                                  ),
+                                                  const SizedBox(width: 5),
                                                   Expanded(
                                                     child: Text(
                                                       (node.data?.label ?? "").tight(),
@@ -333,9 +319,17 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
                                                     ),
                                                   ),
                                                   if (node.data?.sensorType == "energy")
-                                                    const Icon(Icons.energy_savings_leaf),
+                                                    const Icon(
+                                                      Icons.energy_savings_leaf,
+                                                      size: 16,
+                                                      color: Colors.green,
+                                                    ),
                                                   if (node.data?.isCritial ?? false)
-                                                    const Icon(Icons.error)
+                                                    const Icon(
+                                                      Icons.error,
+                                                      size: 16,
+                                                      color: Colors.red,
+                                                    )
                                                 ],
                                               ),
                                             )

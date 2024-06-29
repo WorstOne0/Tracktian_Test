@@ -1,4 +1,5 @@
 // Flutter packages
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tracktian_test/controllers/company_controller.dart';
@@ -52,7 +53,7 @@ class _HomeState extends ConsumerState<Home> {
           padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 15),
           child: Row(
             children: [
-              const Icon(Icons.domain),
+              const Icon(Icons.inventory),
               const SizedBox(width: 10),
               Text(
                 company.name,
@@ -71,49 +72,51 @@ class _HomeState extends ConsumerState<Home> {
 
     List<Company> companyList = ref.watch(companyProvider).companyList;
 
-    return Scaffold(
-      appBar: const PreferredSize(
-        preferredSize: Size.fromHeight(kToolbarHeight),
-        child: MyAppBar(),
-      ),
-      body: isLoading
-          ? const Center(child: Text("Loading"))
-          : !isSuccess
-              ? ResponseWidget(
-                  icon: Icons.error,
-                  iconColor: Theme.of(context).colorScheme.error,
-                  title: "Algo de Errado Aconteceu",
-                  subtitle: response.message,
-                )
-              : Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 15),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            const Text(
-                              "Companies",
-                              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                            ),
-                            Text(
-                              "${companyList.length}",
-                              style: const TextStyle(color: Colors.grey),
-                            )
-                          ],
+    return ThemeSwitchingArea(
+      child: Scaffold(
+        appBar: const PreferredSize(
+          preferredSize: Size.fromHeight(kToolbarHeight),
+          child: MyAppBar(),
+        ),
+        body: isLoading
+            ? const Center(child: Text("Loading"))
+            : !isSuccess
+                ? ResponseWidget(
+                    icon: Icons.error,
+                    iconColor: Theme.of(context).colorScheme.error,
+                    title: "Algo de Errado Aconteceu",
+                    subtitle: response.message,
+                  )
+                : Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 15),
+                    child: Column(
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 15),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              const Text(
+                                "Empresas",
+                                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                              ),
+                              Text(
+                                "${companyList.length}",
+                                style: const TextStyle(color: Colors.grey),
+                              )
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 10),
-                      Column(
-                        children: [
-                          ...companyList.map((company) => buildCompanyCard(company)),
-                        ],
-                      )
-                    ],
+                        const SizedBox(height: 10),
+                        Column(
+                          children: [
+                            ...companyList.map((company) => buildCompanyCard(company)),
+                          ],
+                        )
+                      ],
+                    ),
                   ),
-                ),
+      ),
     );
   }
 }

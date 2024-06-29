@@ -36,15 +36,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: BoxDecoration(
-            image: DecorationImage(
-          image: AssetImage(
-            Theme.of(context).brightness == Brightness.light
-                ? "assets/drawable/ic_background_white.png"
-                : "assets/drawable/ic_background_black.jpg",
-          ),
-          fit: BoxFit.cover,
-        )),
+        color: Theme.of(context).colorScheme.surface,
         child: Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.all(15),
@@ -56,38 +48,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 widthFactor: 0.7,
                 child: Image.asset(
                   height: 180,
-                  Theme.of(context).brightness == Brightness.light
-                      ? "assets/drawable/ic_wiki_vert.png"
-                      : "assets/drawable/ic_wiki_vert_white.png",
+                  "assets/drawable/tracktian_logo.png",
                 ),
               ),
-              const SizedBox(height: 60),
-              const Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "SOLUÇÕES ",
-                        style: TextStyle(fontSize: 18),
-                      ),
-                      Text(
-                        "INTELIGENTES",
-                        style: TextStyle(fontSize: 18, color: Colors.green),
-                      )
-                    ],
-                  ),
-                  SizedBox(height: 5),
-                  FittedBox(
-                    fit: BoxFit.fitWidth,
-                    child: Text(
-                      "TELEMETRIA | RASTREAMENTO | GESTÃO DE SILOS",
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-                    ),
-                  )
-                ],
-              )
             ],
           ),
         ),

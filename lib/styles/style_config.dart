@@ -11,17 +11,17 @@ TonalPalette toTonalPalette(int value) {
   return TonalPalette.of(color.hue, color.chroma);
 }
 
-TonalPalette primaryTonalP = toTonalPalette(const Color(0xFF385B3E).value);
+TonalPalette primaryTonalP = toTonalPalette(const Color(0xFF2188FF).value);
 
 // Color Scheme
 // Generated Primary - 0xFF106D34
 ColorScheme lightColorScheme = const ColorScheme(
   brightness: Brightness.light,
-  primary: Color(0xFF385B3E),
+  primary: Color(0xFF2188FF),
   onPrimary: Color(0xFFFFFFFF),
   primaryContainer: Color(0xFF9FF6AE),
   onPrimaryContainer: Color(0xFF00210A),
-  secondary: Color(0xFF506351),
+  secondary: Color(0xFF17192d),
   onSecondary: Color(0xFFFFFFFF),
   secondaryContainer: Color(0xFFD3E8D2),
   onSecondaryContainer: Color(0xFF0E1F12),
@@ -53,7 +53,7 @@ ColorScheme darkColorScheme = ColorScheme(
   onPrimary: const Color(0xFF003917),
   primaryContainer: const Color(0xFF005224),
   onPrimaryContainer: const Color(0xFF9FF6AE),
-  secondary: const Color(0xFFB7CCB6),
+  secondary: const Color(0xFF17192d),
   onSecondary: const Color(0xFF233425),
   secondaryContainer: const Color(0xFF394B3B),
   onSecondaryContainer: const Color(0xFFD3E8D2),
