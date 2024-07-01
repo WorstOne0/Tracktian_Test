@@ -48,9 +48,8 @@ class MyApp extends ConsumerWidget {
     return ThemeProvider(
       initTheme: isDark ? dark() : light(),
       duration: const Duration(milliseconds: 500),
-      // GetX package - adds useful funcionalities
       builder: (_, theme) => GetMaterialApp(
-        title: 'Tracktian Test',
+        title: 'Tractian Test',
         debugShowCheckedModeBanner: false,
         theme: theme,
         builder: (context, child) => ResponsiveBreakpoints.builder(

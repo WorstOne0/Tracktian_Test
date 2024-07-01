@@ -7,6 +7,7 @@ import '/controllers/assets_controller.dart';
 // Pages
 import 'tree_view_isolate.dart';
 // Widgets
+import '/widgets/loading_shimmer.dart';
 import '/widgets/build_text_field.dart';
 import '/widgets/response_widget.dart';
 // Utils
@@ -32,6 +33,7 @@ class AssetsTreeView extends ConsumerStatefulWidget {
 }
 
 class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
+  //
   bool isLoading = true, isSuccess = false, isSearching = false;
   late ({bool success, String message}) response;
 
@@ -85,12 +87,32 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
     assetsTree = await createTreeViewIsolate(
       ref.read(assetsProvider).locationList,
       ref.read(assetsProvider).assetList,
-      _searchController.text,
+      _searchController.text.toLowerCase(),
       filterEnergy,
       filterCritical,
     );
 
     setState(() => isSearching = false);
+  }
+
+  Widget buildLoading({bool showTop = true}) {
+    return Center(
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(15),
+          child: Column(
+            children: [
+              if (showTop) rectLoadingCard(120),
+              if (showTop) const SizedBox(height: 15),
+              ...List.generate(
+                10,
+                (index) => Column(children: [rectLoadingCard(60), const SizedBox(height: 15)]),
+              )
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -115,7 +137,7 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
         actions: const [Icon(Icons.inventory), SizedBox(width: 20)],
       ),
       body: isLoading
-          ? const Center(child: Text("Loading"))
+          ? buildLoading()
           : !isSuccess
               ? ResponseWidget(
                   icon: Icons.error,
@@ -259,9 +281,7 @@ class _AssetsTreeViewState extends ConsumerState<AssetsTreeView> {
                         ),
                       ),
                       isSearching
-                          ? const Center(
-                              child: Text("Buscando"),
-                            )
+                          ? Expanded(child: buildLoading(showTop: false))
                           : Expanded(
                               child: CustomScrollView(
                                 controller: _autoController,

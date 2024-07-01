@@ -3,7 +3,8 @@
 // Flutter packages
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tracktian_test/pages/home.dart';
+// Pages
+import '/pages/home.dart';
 // Widgets
 import '/widgets/responsive/create_route.dart';
 
@@ -48,7 +49,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen> {
                 widthFactor: 0.7,
                 child: Image.asset(
                   height: 180,
-                  "assets/drawable/tracktian_logo.png",
+                  "assets/drawable/tractian_logo_full.png",
                 ),
               ),
             ],

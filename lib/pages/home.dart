@@ -2,13 +2,16 @@
 import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tracktian_test/controllers/company_controller.dart';
-import 'package:tracktian_test/models/company.dart';
-import 'package:tracktian_test/pages/assets/assets_tree_view.dart';
-import 'package:tracktian_test/widgets/response_widget.dart';
-import 'package:tracktian_test/widgets/responsive/create_route.dart';
+// Controllers
+import '/controllers/company_controller.dart';
+// Pages
+import '/pages/assets/assets_tree_view.dart';
+// Models
+import '/models/company.dart';
 // Widget
 import '/widgets/my_appbar.dart';
+import '/widgets/response_widget.dart';
+import '/widgets/responsive/create_route.dart';
 
 class Home extends ConsumerStatefulWidget {
   const Home({super.key});

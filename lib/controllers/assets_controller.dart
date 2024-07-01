@@ -2,11 +2,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
-import 'package:tracktian_test/controllers/company_controller.dart';
+// Controllers
+import '/controllers/company_controller.dart';
 // Models
-import 'package:tracktian_test/models/asset.dart';
-import 'package:tracktian_test/models/company.dart';
-import 'package:tracktian_test/models/location.dart';
+import '/models/asset.dart';
+import '/models/company.dart';
+import '/models/location.dart';
 // Services
 import '/services/api_provider.dart';
 import '/services/secure_storage.dart';

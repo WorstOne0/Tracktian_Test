@@ -1,4 +1,4 @@
-package com.example.tracktian_test
+package com.example.tractian_test
 
 import io.flutter.embedding.android.FlutterActivity
 

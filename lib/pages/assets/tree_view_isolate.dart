@@ -65,7 +65,7 @@ TreeNode<TreeView> buildPermisisonTree(TreeViewIsolate data) {
     );
     root.addAll(children.node);
 
-    if (location.name.contains(search) || children.keepOnTree) {
+    if (location.name.toLowerCase().contains(search) || children.keepOnTree) {
       if (data.filterEnergy || data.filterCritical) {
         if (children.keepOnTree) {
           nodes.add(root);
@@ -88,7 +88,7 @@ TreeNode<TreeView> buildPermisisonTree(TreeViewIsolate data) {
       ),
     );
 
-    if (asset.name.contains(search)) {
+    if (asset.name.toLowerCase().contains(search)) {
       if (data.filterEnergy && data.filterCritical) {
         if (asset.sensorType == "energy" && asset.status == "alert") nodes.add(root);
       } else if (data.filterEnergy) {
@@ -131,7 +131,7 @@ TreeNode<TreeView> buildPermisisonTree(TreeViewIsolate data) {
         locationList, assetList, search, location.id, filterEnergy, filterCritical);
     root.addAll(children.node);
 
-    bool keepOnTree = children.keepOnTree || location.name.contains(search);
+    bool keepOnTree = children.keepOnTree || location.name.toLowerCase().contains(search);
     if (keepOnTree) {
       if (filterEnergy || filterCritical) {
         if (children.keepOnTree) {
@@ -160,7 +160,7 @@ TreeNode<TreeView> buildPermisisonTree(TreeViewIsolate data) {
         buildTreeChildren(locationList, assetList, search, asset.id, filterEnergy, filterCritical);
     root.addAll(children.node);
 
-    bool keepOnTree = children.keepOnTree || asset.name.contains(search);
+    bool keepOnTree = children.keepOnTree || asset.name.toLowerCase().contains(search);
     if (keepOnTree) {
       if (filterEnergy && filterCritical) {
         if (asset.sensorType == "energy" && asset.status == "alert") {
@@ -199,7 +199,7 @@ TreeNode<TreeView> buildPermisisonTree(TreeViewIsolate data) {
         buildTreeChildren(locationList, assetList, search, asset.id, filterEnergy, filterCritical);
     root.addAll(children.node);
 
-    bool keepOnTree = children.keepOnTree || asset.name.contains(search);
+    bool keepOnTree = children.keepOnTree || asset.name.toLowerCase().contains(search);
     if (keepOnTree) {
       if (filterEnergy && filterCritical) {
         if (asset.sensorType == "energy" && asset.status == "alert") {

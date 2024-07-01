@@ -1,12 +1,11 @@
 // Flutter packages
-import 'package:animated_theme_switcher/animated_theme_switcher.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:tracktian_test/services/secure_storage.dart';
-import 'package:tracktian_test/styles/style_config.dart';
-// Widgets
-import '/widgets/my_cached_network_image.dart';
+import 'package:animated_theme_switcher/animated_theme_switcher.dart';
+// Services
+import '/services/secure_storage.dart';
+// Styles
+import '/styles/style_config.dart';
 
 class MyAppBar extends ConsumerStatefulWidget {
   const MyAppBar({super.key});
@@ -25,7 +24,7 @@ class _MyAppBarState extends ConsumerState<MyAppBar> {
         height: kToolbarHeight,
         alignment: Alignment.centerLeft,
         child: Image.asset(
-          "assets/drawable/tracktian_logo.png",
+          "assets/drawable/tractian_logo_full.png",
           fit: BoxFit.contain,
           height: 20,
         ),

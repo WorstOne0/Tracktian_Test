@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 // Models
-import 'package:tracktian_test/models/company.dart';
+import '/models/company.dart';
 // Services
 import '/services/api_provider.dart';
 import '/services/secure_storage.dart';
